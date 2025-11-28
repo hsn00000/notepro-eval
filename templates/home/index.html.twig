@@ -1,10 +1,97 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Bienvenue sur NotePro!{% endblock %}
+{% block title %}Bienvenue sur NotePro !{% endblock %}
 
 {% block body %}
-    {% for success in app.flashes('success') %}
-        {{ success }}
-    {% endfor %}
+    <div class="container mt-4">
+        {# --- Gestion des messages Flash (Succès, Erreur, etc.) --- #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
 
+        {# --- Section Héro (Présentation) --- #}
+        <div class="p-5 mb-4 bg-light rounded-3 shadow-sm text-center">
+            <div class="container-fluid py-5">
+                <h1 class="display-5 fw-bold text-primary">Bienvenue sur NotePro</h1>
+                <p class="col-md-8 fs-4 mx-auto">
+                    La plateforme de gestion de vie scolaire simplifiée pour le lycée Gabriel Fauré.
+                    Gérez vos notes, consultez vos résultats et suivez votre progression en toute simplicité.
+                </p>
+
+                {# --- Boutons d'action dynamiques selon le rôle --- #}
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+
+                    {% if app.user %}
+                        {# CAS 1 : Utilisateur connecté #}
+
+                        {% if is_granted('ROLE_PROFESSOR') %}
+                            {# Actions pour les Professeurs #}
+                            <a href="{{ path('app_evaluation_new') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                                <i class="bi bi-plus-circle"></i> Nouvelle Évaluation
+                            </a>
+                            <a href="{{ path('app_professor_evaluations', {id: app.user.id}) }}" class="btn btn-outline-secondary btn-lg px-4">
+                                Mes Évaluations
+                            </a>
+                            <a href="{{ path('app_professor_classes', {id: app.user.id}) }}" class="btn btn-outline-dark btn-lg px-4">
+                                Mes Classes
+                            </a>
+
+                        {% elseif is_granted('ROLE_STUDENT') %}
+                            {# Actions pour les Étudiants #}
+                            <a href="{{ path('app_student_notes', {id: app.user.id}) }}" class="btn btn-primary btn-lg px-4 gap-3">
+                                <i class="bi bi-journal-text"></i> Voir mes notes
+                            </a>
+                            <button type="button" class="btn btn-outline-secondary btn-lg px-4" disabled>
+                                Emploi du temps (Bientôt)
+                            </button>
+
+                        {% else %}
+                            {# Autre rôle (Admin, etc.) #}
+                            <a href="#" class="btn btn-primary btn-lg px-4">Mon Espace</a>
+                        {% endif %}
+
+                    {% else %}
+                        {# CAS 2 : Visiteur non connecté #}
+                        <a href="{{ path('app_login') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                            Se connecter
+                        </a>
+                        <a href="{{ path('app_register') }}" class="btn btn-outline-secondary btn-lg px-4">
+                            Créer un compte
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# --- Section Fonctionnalités (Visible par tous ou juste les visiteurs) --- #}
+        <div class="row align-items-md-stretch">
+            <div class="col-md-6 mb-3">
+                <div class="h-100 p-5 text-white bg-dark rounded-3">
+                    <h2>Pour les Enseignants</h2>
+                    <p>Gérez vos classes et vos évaluations en quelques clics. Saisissez les notes, choisissez les dates de publication et suivez la moyenne de vos classes.</p>
+                    {% if not app.user or is_granted('ROLE_PROFESSOR') %}
+                        <button class="btn btn-outline-light" type="button">En savoir plus</button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="h-100 p-5 bg-body-tertiary border rounded-3">
+                    <h2>Pour les Étudiants</h2>
+                    <p>Accédez à vos résultats en temps réel. Consultez vos moyennes par matière et visualisez votre progression tout au long du semestre.</p>
+                    {% if not app.user or is_granted('ROLE_STUDENT') %}
+                        <button class="btn btn-outline-secondary" type="button">Voir la démo</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <footer class="pt-3 mt-4 text-body-secondary border-top">
+            &copy; {{ 'now'|date('Y') }} Lycée Gabriel Fauré - NotePro App
+        </footer>
+    </div>
 {% endblock %}
