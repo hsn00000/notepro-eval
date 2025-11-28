@@ -4,13 +4,13 @@ namespace App\Form;
 
 use App\Entity\ClassLevel;
 use App\Entity\Evaluation;
-use App\Entity\Professor;
 use App\Entity\Subject;
 use App\Repository\ClassLevelRepository;
 use App\Repository\SubjectRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType; // N'oubliez pas cet import (déjà présent dans votre code)
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -23,14 +23,20 @@ class EvaluationType extends AbstractType
         $eval = $options['data'];
         $prof = $eval->getProfessor();
 
-        $subjects = $prof->getSubjects();
-        $classes = [];
-        $classes = $prof->getClassLevels();
-
         $builder
             ->add('date', DateType::class, [
                 'widget' => 'single_text',
+                'label' => 'Date de l\'évaluation', // J'ai ajouté un label pour plus de clarté
             ])
+            // --- AJOUT DU CHAMP PUBLISHDATE ICI ---
+            ->add('publishDate', DateTimeType::class, [
+                'widget' => 'single_text',
+                'label' => 'Date de publication des notes',
+                'required' => true,
+                'help' => 'Les notes ne seront visibles par les élèves qu\'à partir de cette date/heure.',
+                'data' => new \DateTime(), // Pré-remplit avec la date et l'heure actuelles par défaut
+            ])
+            // --------------------------------------
             ->add('label', TextType::class, [
                 'label' => 'Titre de l\'évaluation'
             ])
