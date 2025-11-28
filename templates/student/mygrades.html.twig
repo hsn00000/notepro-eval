@@ -1,27 +1,70 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Student{% endblock %}
+{% block title %}Mes Notes{% endblock %}
 
 {% block body %}
-    <h1>Notes de {{ app.user.name }}</h1>
+    <div class="container mt-4">
+        <h1>Relevé de notes : {{ student.name }}</h1>
 
-    <table class="table">
-        <thead>
-        <tr>
-            <th scope="col">Evaluation</th>
-            <th scope="col">Note</th>
-            <th scope="col">Barème</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for gr in student.grades %}
-        <tr>
-            <td>{{ gr.evaluation.label }}</td>
-            <td>{{ gr.grade }}</td>
-            <td>{{ gr.evaluation.bareme }}</td>
-        </tr>
+        {# 1. On parcourt toutes les matières envoyées par le contrôleur #}
+        {% for subject in subjects %}
+
+            {# 2. Appel direct à votre méthode de l'Entité pour avoir la moyenne #}
+            {# Comme votre méthode filtre déjà la date, la moyenne ne "spoilera" pas les notes cachées #}
+            {% set average = student.getAverageBySubject(subject) %}
+
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ subject.label }}</h5>
+
+                    {# Affichage de la moyenne si elle existe #}
+                    {% if average is not null %}
+                        <span class="badge bg-primary">Moyenne : {{ average|number_format(2, ',') }} / 20</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Non noté</span>
+                    {% endif %}
+                </div>
+
+                <div class="card-body">
+                    {# Si aucune note n'est affichée, on peut mettre un message (optionnel) #}
+                    <table class="table table-sm table-striped">
+                        <thead>
+                        <tr>
+                            <th>Devoir</th>
+                            <th>Date</th>
+                            <th>Note</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {# 3. On parcourt TOUTES les notes de l'étudiant #}
+                        {% for grade in student.grades %}
+
+                            {# A. On ne garde que les notes de la matière en cours #}
+                            {% if grade.evaluation.subject == subject %}
+
+                                {# B. FILTRE US 2 : On vérifie la date de publication #}
+                                {# Si pas de date définie OU date passée => On affiche #}
+                                {% if grade.evaluation.publishDate is null or grade.evaluation.publishDate <= date() %}
+                                    <tr>
+                                        <td>{{ grade.evaluation.label }}</td>
+                                        <td>{{ grade.evaluation.date|date('d/m/Y') }}</td>
+                                        <td>
+                                            {% if grade.present %}
+                                                {# Affichage de la note #}
+                                                <strong>{{ grade.grade }}</strong> / {{ grade.evaluation.bareme }}
+                                            {% else %}
+                                                <span class="text-danger">Absent</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endif %}
+
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         {% endfor %}
-        </tbody>
-    </table>
-
+    </div>
 {% endblock %}

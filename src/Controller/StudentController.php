@@ -6,6 +6,7 @@ use App\Entity\PreviousPasswords;
 use App\Entity\Student;
 use App\Form\StudentType;
 use App\Repository\StudentRepository;
+use App\Repository\SubjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -103,13 +104,20 @@ class StudentController extends AbstractController
     }
 
     #[Route('/{id}/notes', name: 'app_student_notes', methods: ['GET', 'POST'])]
-    public function notes(Student $student, EntityManagerInterface $entityManager): Response
+    public function notes(Student $student, SubjectRepository $subjectRepository): Response
     {
+        // Sécurité : on vérifie que l'utilisateur connecté regarde bien ses propres notes
+        if ($this->getUser() !== $student) {
+            throw $this->createAccessDeniedException();
+        }
+
+        // On récupère toutes les matières pour construire l'affichage
+        // Pas de filtre ici, on envoie tout à la vue
+        $subjects = $subjectRepository->findAll();
 
         return $this->render('student/mygrades.html.twig', [
             'student' => $student,
-            'grades' => $student->getGrades()
-
+            'subjects' => $subjects,
         ]);
     }
 }

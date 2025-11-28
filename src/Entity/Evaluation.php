@@ -40,6 +40,9 @@ class Evaluation
     #[ORM\OneToMany(mappedBy: 'evaluation', targetEntity: Grade::class, orphanRemoval: true)]
     private Collection $grades;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTime $publishDate = null;
+
     public function __construct()
     {
         $this->grades = new ArrayCollection();
@@ -160,5 +163,17 @@ class Evaluation
             }
         }
         return null;
+    }
+
+    public function getPublishDate(): ?\DateTime
+    {
+        return $this->publishDate;
+    }
+
+    public function setPublishDate(?\DateTime $publishDate): static
+    {
+        $this->publishDate = $publishDate;
+
+        return $this;
     }
 }
